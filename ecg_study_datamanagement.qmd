@@ -1,0 +1,159 @@
+---
+title: "ECG_accurate_datamanagement"
+format: html
+editor: visual
+---
+## Load packages
+```{r 'load package' echo = false}
+pacman::p_load(
+    tidyverse,
+    ggplot2,
+    questionr,
+    skimr,
+    gtsummary
+)
+```
+
+## Load datasets
+```{r}
+ecg <- read_csv("ecg_study.csv")
+head(ecg)
+```
+
+## data_management
+```{r}
+name_col<-names(ecg)
+
+ ecg<-ecg |> rename(
+    "age" = "Quel est votre âge?",
+    "sex" = "Quel est votre sexe ?",
+    "education" ="Quel est votre niveau d'étude ?",
+    "experience_clinique" = "Combien d'années d'expérience clinique avez-vous depuis la 4e année ? (Ecrivez un chiffre ou un nombre)",
+    "lieu_formation" =  "Quel est votre lieu de formation ou d'exercice ?",
+    "service_actuel" =  "Quel est votre service actuel d'exercice ou de formation ?" ,
+    "type_form_san" = "Dans quel type de formations sanitaires êtes-vous actuellement ?",
+    "enseign_form_ecg" = "Avez-vous déjà suivi un enseignement formel sur l’ECG ?",
+    "formation_interpret_ecg" = "Quel(s) a (ont) été votre (vos) moyen(s) de formation à l'interprétation de l’électrocardiogramme ?",
+    "auto_formation" = "Si vous avez coché « Autoformation » à la question précédente, quel(s) a (ont) été votre (vos) moyen(s) d'autoformation à l'interprétation de l’électrocardiogramme?",
+    "manuels_ecg_attente" = "Si vous avez coché « Manuels d'ECG » à la question précédente, est-ce que ces manuels ont répondu à vos attentes ?",
+    "attente_non" = "Si non. Pourquoi?",
+    "stages_pratiques" = "Avez-vous déjà fait des stages ou pratiqué dans un service de Cardiologie ?\n",
+    "acces_ecg" = "Avez-vous accès à un appareil d'ECG dans votre lieu d'exercice/stage ?",
+    "connaissance_ecg_real" = "Connaissez-vous les étapes ou le procédé de réalisation d’un ECG ?",
+    "real_ecg_indiv" = "Avez-vous déjà réalisé un ECG par vous-même ?",
+   "critere_validity"= "Connaissez-vous les critères de validité d’un ECG ?",
+   "ecg_number_per_day" = "Combien d'ECGs voyez-vous par jour en moyenne ?",
+   "urgence_interpretation_ecg" = "Vous sentez-vous capable d’interpréter un électrocardiogramme en situation critique ou en urgence ?",
+   "niveau_interpretation" = "À quel niveau estimez-vous vos compétences en interprétation de l’ECG sur une échelle de 1 à 5 ?",
+   "frequence_interpretation_ecg" = "À quelle fréquence interprétez-vous des ECG dans votre pratique actuelle ?",
+   "anomalie_ecg_interp" = "Parmi les anomalies suivantes, lesquelles pensez-vous pouvoir identifier sur un ECG ?",
+   "connaissance_interprétation_automatique" = "Saviez-vous que les appareils d’ECG sont équipés d’un module d’interprétation automatique intégré ?",
+   "intepreteur_fiabilite" = "Selon vous, ces modules sont-ils fiables pour un diagnostic ECG précis ?\n",
+   "obstacle_ecg" = "Quels sont, selon vous, les principaux obstacles à une meilleure maîtrise de l’ECG ?",
+   "ecg1" = "A. ECG 1 :  Patient de 68 ans, hypertendu connu sous traitement , consulte pour palpitations avec sensation de «cœur qui tape dans la poitrine ». Quel est votre diagnostic ? Une seule réponse possible.",
+   "ecg2" = "B. ECG 2 :  Patient de 45 ans hypertendu connu depuis 02 ans sous traitement. Un ECG  lui est demandé lors de sa visite annuelle chez son cardiologue. Quel est votre diagnostic ? Une seule réponse possible.",
+   "ecg3" = "C. ECG 3 : Patiente de 70 ans avec notion d’immobilisation prolongée secondaire à une fracture du col fémoral, elle consulte au SAU pour douleur basithoracique gauche. Quel est votre diagnostic ? Une seule réponse possible.",
+   "ecg4" = "D. ECG 4 :  Patiente de 45 ans diabétique connue depuis 05 ans et qui présente des douleurs rétro sternales évoluant depuis 01 heure de temps. Quel est votre diagnostic ? Une seule réponse possible.",
+   "ecg5" = "E. ECG 5 : Quel est votre diagnostic ? Patient de 55 ans suivi pour cardiopathie ischémique. Lors de sa consultation, devant l’arythmie auscultatoire, un ECG lui est réalisé. Quelle anomalie observez-vous ? Une seule réponse possible.\n",
+   "ecg6" ="F. ECG 6 :  Patiente de 25 ans sans antécédents pathologiques particuliers . Elle consulte pour palpitations et crampes. Quel est votre diagnostic ? Une seule réponse possible",
+   "ecg7" = "G. ECG 7 :  Patient de 80 ans se présente au SAU avec une notion de dyspnée d’effort stade II de la NYHA. Quel est votre diagnostic ? Une seule réponse possible.",
+   "ecg8" = "H. ECG 8: Une femme de 75 ans est admise en urgence pour « perte de connaissance » brutale . Quel est votre diagnostic ? Une seule réponse possible.",
+   "ecg9" =  "I. ECG 9 : Patient de 59 suivie pour une cardio ischémique avec FEVG altéré à 30%, reçu aux urgences pour tachycardie évoluant depuis 2h. Quel est votre diagnostic patiente ? Une seule réponse possible.",
+   "ecg10" = "J. ECG 10: Quel est votre diagnostic ? Une seule réponse possible."
+   
+    
+    
+)
+```
+
+```{r}
+library(dplyr)
+library(stringr)
+
+ library(dplyr)
+library(stringr)
+
+ecg <- ecg |> 
+  mutate(
+    # --- Données sociodémographiques ---
+    age = as.numeric(str_extract(age, "\\d+")),
+    
+    experience_clinique_num = case_when(
+      experience_clinique == "11 mois de stage" ~ 11/12,
+      experience_clinique == "2,5 ans" ~ 2.5,
+      experience_clinique == "2 ans et demi" ~ 2.5,
+      TRUE ~ NA_real_
+    ),
+    experience_clinique = if_else(
+      is.na(experience_clinique_num),
+      as.numeric(str_extract(experience_clinique, "\\d+")),
+      experience_clinique_num
+    ),
+    
+    service_actuel = case_when(
+      str_detect(service_actuel, "Anesthésie") ~ "Anesthésie",
+      str_detect(service_actuel, "Chirurgie") ~ "Chirurgie",
+      str_detect(service_actuel, "Gynéco") ~ "Gynécologie-Obstétrique",
+      str_detect(service_actuel, "Médecine Interne") ~ "Médecine Interne",
+      str_detect(service_actuel, "Pédiatrie") ~ "Pédiatrie",
+      str_detect(service_actuel, "Psychiatrie") ~ "Psychiatrie",
+      str_detect(service_actuel, "Cardiologie") ~ "Cardiologie",
+      str_detect(service_actuel, "Urologie") ~ "Urologie",
+      str_detect(service_actuel, "ORL") ~ "ORL",
+      str_detect(service_actuel, "ophtalmo") ~ "Ophtalmologie",
+      str_detect(service_actuel, "Néphro") ~ "Néphrologie",
+      TRUE ~ service_actuel
+    ),
+    
+    # --- Formation initiale ECG ---
+    cours_magistraux       = as.integer(str_detect(formation_interpret_ecg, "magistraux")),
+    autoformation          = as.integer(str_detect(formation_interpret_ecg, "Auto-formation")),
+    stage_hospitalier      = as.integer(str_detect(formation_interpret_ecg, "stages")),
+    td_tp                  = as.integer(str_detect(formation_interpret_ecg, "TD/TP")),
+    
+    # --- Supports d’autoformation ---
+    manuels_ecg            = as.integer(str_detect(auto_formation, "Manuels d'ECG")),
+    videos_internet        = as.integer(str_detect(auto_formation, "Vidéos sur Internet")),
+    sites_web              = as.integer(str_detect(auto_formation, "Sites Web")),
+    groupes_en_ligne       = as.integer(str_detect(auto_formation, "Groupes en ligne")),
+    cours_theoriques       = as.integer(str_detect(auto_formation, "Cours théoriques")),
+    flashcards             = as.integer(str_detect(auto_formation, "Flashcards")),
+    aucun_support          = as.integer(str_detect(auto_formation, "Aucun")),
+    ami                    = as.integer(str_detect(auto_formation, "Un ami")),
+    
+    # --- Niveau de compétence ECG ---
+    niveau_ecg_num = case_when(
+      str_detect(niveau_interpretation, "^1\\.") ~ 1,
+      str_detect(niveau_interpretation, "^2\\.") ~ 2,
+      str_detect(niveau_interpretation, "^3\\.") ~ 3,
+      str_detect(niveau_interpretation, "^4\\.") ~ 4,
+      str_detect(niveau_interpretation, "^5\\.") ~ 5,
+      TRUE ~ NA_real_
+    ),
+    
+    # --- Obstacles à l’apprentissage ECG ---
+    obstacle_faculte       = as.integer(str_detect(obstacle_ecg, "formation pratique à la faculté")),
+    obstacle_traces        = as.integer(str_detect(obstacle_ecg, "tracés ECG réels")),
+    obstacle_stage         = as.integer(str_detect(obstacle_ecg, "Pas de stages dans un service spécialiser")),
+    obstacle_formation     = as.integer(str_detect(obstacle_ecg, "Absence de formation continue après les études")),
+    
+    # --- Évaluation ECG (réponses correctes) ---
+    ecg1_ok  = as.integer(str_detect(ecg1, "Fibrillation auriculaire")),
+    ecg2_ok  = as.integer(str_detect(ecg2, "HAG")), # HAG = Hypertrophie atriale gauche
+    ecg3_ok  = as.integer(str_detect(ecg3, "bloc de branche droit")),
+    ecg4_ok  = as.integer(str_detect(ecg4, "SCA ST\\+.*inférieur|latéral")),
+    ecg5_ok  = as.integer(str_detect(ecg5, "Extrasystole ventriculaire")),
+    ecg6_ok  = as.integer(str_detect(ecg6, "Normal")),
+    ecg7_ok  = as.integer(str_detect(ecg7, "BAV complet")),
+    ecg8_ok  = as.integer(str_detect(ecg8, "SCA non ST \\+")),
+    ecg9_ok  = as.integer(str_detect(ecg9, "Tachycardie Ventriculaire")),
+    ecg10_ok = as.integer(str_detect(ecg10, "Inversion des électrodes"))
+  ) |> 
+  select(-experience_clinique_num)
+
+```
+
+```{r}
+ecg
+```
+
